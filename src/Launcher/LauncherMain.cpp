@@ -17,7 +17,7 @@
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-// I don't know where else to put them
+// I don't know where else to put these
 void InitLog(const fs::path& projectsPath) {
     const fs::path logPath = projectsPath.parent_path() / "Logs" / "launcher_log.txt";
 
@@ -65,17 +65,17 @@ bool CreateDirectories(const fs::path& projectsPath) {
 int main(int argc, char** argv) {
     const fs::path projectsPath = ProjectManager::GetDefaultProjectsFolder();
 
-    InitLog(projectsPath);
     if (!CreateDirectories(projectsPath)) {
         spdlog::critical("Could not create directories in LauncherMain.cpp");
         return 1;
     }
+    InitLog(projectsPath);
     spdlog::info("Engine started");
 
     //todo WOLFYTODO add a launcher for creating and selecting projects
 
-    // Creates and opens the the project at C:/Documents/Wolfy Engine/Projects/ or the Linux equivelant
-    ProjectManager::CreateProject(projectsPath, "DevProject");
+    // Creates and/or opens the project at C:/Documents/Wolfy Engine/Projects/ or the Linux equivelant
+    ProjectManager::CreateProjectDirectory("DevProject");
 
     return 0;
 }

@@ -10,6 +10,5 @@ int main() {
     while (Engine::Running()) Engine::Process();
 
     Engine::Destroy();
-
     return 0;
 }

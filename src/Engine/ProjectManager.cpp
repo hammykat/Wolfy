@@ -110,7 +110,7 @@ namespace ProjectManager {
         const fs::path resolvedEngineDir = engineDirectory.empty() ? GetEngineBasePath() : engineDirectory;
 
 #ifdef _WIN32
-        const fs::path engineExe = resolvedEngineDir / "Wolfy_Engine.exe";
+        const fs::path engineExe = resolvedEngineDir / "Wolfy.exe";
 
         std::wstring appPath = engineExe.wstring();
 
