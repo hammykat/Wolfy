@@ -1,0 +1,209 @@
+//
+// Created by berke on 9/12/2026.
+//
+
+#include "../../Headers/Engine/InputManager.hpp"
+#include <algorithm>
+
+#if TILKY_USE_IMGUI
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#endif
+
+namespace {
+    const bool* keyboardState = nullptr;
+    bool prevKeyboardState[SDL_SCANCODE_COUNT] = {};
+
+    SDL_MouseButtonFlags mouseState = 0;
+    SDL_MouseButtonFlags prevMouseState = 0;
+
+    Vector2 mousePosition{};
+    Vector2 mouseDelta{};
+
+    float mouseWheelScrollAmount = 0.0f;
+
+    bool relativeMouseMode = false;
+
+    bool quitRequested = false;
+
+    std::vector<InputManager::DroppedFile> droppedFiles;
+
+    bool externalDragActive = false;
+    Vector2 externalDragPosition{};
+}
+
+namespace InputManager {
+    void Initialize(SDL_Window* window) {
+        SDL_PumpEvents();
+
+        keyboardState = SDL_GetKeyboardState(nullptr);
+        std::copy_n(keyboardState, SDL_SCANCODE_COUNT, prevKeyboardState);
+
+        mouseState = SDL_GetMouseState(&mousePosition.x, &mousePosition.y);
+        prevMouseState = mouseState;
+
+        mouseDelta = {0.0f, 0.0f};
+
+#if TILKY_USE_IMGUI
+        if (!SDL_TextInputActive(window)) if (!SDL_StartTextInput(window)) SDL_Log("SDL_StartTextInput failed: %s", SDL_GetError());
+#endif
+    }
+
+    void BeginFrame() {
+        mouseWheelScrollAmount = 0.0f;
+        quitRequested = false;
+
+        if (!droppedFiles.empty()) [[unlikely]] droppedFiles.clear();
+
+        // Save previous frame input
+        std::copy_n(keyboardState, SDL_SCANCODE_COUNT, prevKeyboardState);
+        prevMouseState = mouseState;
+
+        const Vector2 previousMousePosition = mousePosition;
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+#if TILKY_USE_IMGUI
+            if (ImGui::GetCurrentContext() != nullptr) ImGui_ImplSDL3_ProcessEvent(&event);
+
+#endif
+
+            switch (event.type) {
+                case SDL_EVENT_MOUSE_WHEEL: mouseWheelScrollAmount += event.wheel.y; break;
+                case SDL_EVENT_QUIT: quitRequested = true; break;
+                case SDL_EVENT_DROP_BEGIN: externalDragActive = true; break;
+
+                case SDL_EVENT_DROP_POSITION:
+                    externalDragActive = true;
+                    externalDragPosition = {event.drop.x,event.drop.y};
+                    break;
+
+                case SDL_EVENT_DROP_FILE:
+                    externalDragPosition = {
+                        event.drop.x,
+                        event.drop.y
+                    };
+
+                    if (event.drop.data != nullptr) {
+                        droppedFiles.push_back({
+                            std::filesystem::path(event.drop.data),
+                            externalDragPosition
+                        });
+                    }
+                    break;
+
+                case SDL_EVENT_DROP_COMPLETE: externalDragActive = false; break;
+                default: break;
+            }
+        }
+
+        keyboardState = SDL_GetKeyboardState(nullptr);
+        mouseState = SDL_GetMouseState(&mousePosition.x, &mousePosition.y);
+
+        if (relativeMouseMode) {
+            float dx = 0.0f;
+            float dy = 0.0f;
+
+            mouseState = SDL_GetRelativeMouseState(&dx, &dy);
+
+            mouseDelta = {dx, dy};
+        }
+        else {
+            mouseDelta = {
+                mousePosition.x - previousMousePosition.x,
+                mousePosition.y - previousMousePosition.y
+            };
+        }
+    }
+
+    bool QuitRequested() {
+        return quitRequested;
+    }
+
+    bool GetKeyDown(const SDL_Scancode key) {
+        return keyboardState[key] && !prevKeyboardState[key];
+    }
+
+    bool GetKey(const SDL_Scancode key) {
+        return keyboardState[key];
+    }
+
+    bool GetKeyUp(const SDL_Scancode key) {
+        return !keyboardState[key] && prevKeyboardState[key];
+    }
+
+    bool GetDoubleKeyDown(const SDL_Scancode key, const SDL_Scancode keyTwo) {
+        const bool bothHeld = GetKey(key) && GetKey(keyTwo);
+        const bool eitherFirstFrame = GetKeyDown(key) || GetKeyDown(keyTwo);
+        return bothHeld && eitherFirstFrame;
+    }
+
+    bool GetDoubleKey(const SDL_Scancode key, const SDL_Scancode keyTwo) {
+        return GetKey(key) && GetKey(keyTwo);
+    }
+
+    bool GetMouseButtonDown(const Uint32 button) {
+        return (mouseState & SDL_BUTTON_MASK(button)) && !(prevMouseState & SDL_BUTTON_MASK(button));
+    }
+
+    bool GetMouseButton(const Uint32 button) {
+        return (mouseState & SDL_BUTTON_MASK(button)) != 0;
+    }
+
+    bool GetMouseButtonUp(Uint32 button) {
+        return !(mouseState & SDL_BUTTON_MASK(button)) && (prevMouseState & SDL_BUTTON_MASK(button));
+    }
+
+    SDL_Scancode GetAnyKey() {
+        if (!keyboardState) return SDL_SCANCODE_UNKNOWN;
+
+        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (keyboardState[i]) return static_cast<SDL_Scancode>(i);
+        return SDL_SCANCODE_UNKNOWN;
+    }
+
+    SDL_Scancode GetAnyKeyDown() {
+        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (keyboardState[i] && !prevKeyboardState[i])
+            return static_cast<SDL_Scancode>(i);
+        return SDL_SCANCODE_UNKNOWN;
+    }
+
+    SDL_Scancode GetAnyKeyUp() {
+        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (!keyboardState[i] && prevKeyboardState[i])
+            return static_cast<SDL_Scancode>(i);
+        return SDL_SCANCODE_UNKNOWN;
+    }
+
+    bool GetMouseWheelScrollUp() {return mouseWheelScrollAmount > 0; }
+
+    bool GetMouseWheelScrollDown() {return mouseWheelScrollAmount < 0;}
+
+    float GetMouseWheelScroll() {return mouseWheelScrollAmount;}
+
+    Vector2 GetMousePosition() {return mousePosition;}
+
+    Vector2 GetMouseDelta() {return mouseDelta;}
+
+    void SetRelativeMouseMode(SDL_Window* window, const bool enabled) {
+        relativeMouseMode = enabled;
+
+        SDL_SetWindowRelativeMouseMode(window, enabled);
+
+        float dx = .0f;
+        float dy = .0f;
+        SDL_GetRelativeMouseState(&dx, &dy);
+
+        mouseDelta = {.0f, .0f};
+    }
+
+    const std::vector<DroppedFile>& GetDroppedFiles() {
+        return droppedFiles;
+    }
+
+    bool IsExternalDragActive() {
+        return externalDragActive;
+    }
+
+    Vector2 GetExternalDragPosition() {
+        return externalDragPosition;
+    }
+}
