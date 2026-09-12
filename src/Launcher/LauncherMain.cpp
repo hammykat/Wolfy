@@ -2,13 +2,12 @@
 // Created by berke on 5/3/2026.
 //
 
-#include <SDL3/SDL_main.h>
+//#include <SDL3/SDL_main.h>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
-#include <chrono>
 
 #include "../../Headers/Engine/ProjectManager.hpp"
 #include "spdlog/sinks/basic_file_sink.h"
@@ -27,16 +26,6 @@ void InitLog(const fs::path& projectsPath) {
         auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         consoleSink->set_level(spdlog::level::trace);
 
-        // Rotating file sink instead of a truncating one: each launch starts a fresh
-        // launcher_log.txt (rotate_on_open = true) but the last few runs are kept as
-        // launcher_log.1.txt, launcher_log.2.txt, etc., so a crash can still be diagnosed
-        // after the fact instead of being wiped by the very next launch.
-        // constexpr size_t maxLogFileSize = 5 * 1024 * 1024; // 5 MB
-        // constexpr size_t maxLogFileCount = 3;
-        // auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        //     logPath.string(), maxLogFileSize, maxLogFileCount, /*rotate_on_open=*/true);
-
-        // BASIC SINK FILE BECAUSE WE DONT NEED ROTATING RIGHT NOW
         auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logPath.string(),true);
 
         std::vector<spdlog::sink_ptr> sinks{consoleSink, fileSink};

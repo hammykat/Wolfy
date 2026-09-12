@@ -69,6 +69,7 @@ namespace Engine {
         ProjectManager::GetEngineFolder();
         InitEngineLogger();
 
+
         Renderer::Initialize();
         InputManager::Initialize(Renderer::GetWindow());
     }

@@ -120,9 +120,7 @@ namespace InputManager {
         }
     }
 
-    bool QuitRequested() {
-        return quitRequested;
-    }
+    bool QuitRequested() { return quitRequested; }
 
     bool GetKeyDown(const SDL_Scancode key) {
         return keyboardState[key] && !prevKeyboardState[key];
@@ -154,26 +152,22 @@ namespace InputManager {
         return (mouseState & SDL_BUTTON_MASK(button)) != 0;
     }
 
-    bool GetMouseButtonUp(Uint32 button) {
+    bool GetMouseButtonUp(const Uint32 button) {
         return !(mouseState & SDL_BUTTON_MASK(button)) && (prevMouseState & SDL_BUTTON_MASK(button));
     }
 
     SDL_Scancode GetAnyKey() {
-        if (!keyboardState) return SDL_SCANCODE_UNKNOWN;
-
         for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (keyboardState[i]) return static_cast<SDL_Scancode>(i);
         return SDL_SCANCODE_UNKNOWN;
     }
 
     SDL_Scancode GetAnyKeyDown() {
-        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (keyboardState[i] && !prevKeyboardState[i])
-            return static_cast<SDL_Scancode>(i);
+        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (keyboardState[i] && !prevKeyboardState[i]) return static_cast<SDL_Scancode>(i);
         return SDL_SCANCODE_UNKNOWN;
     }
 
     SDL_Scancode GetAnyKeyUp() {
-        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (!keyboardState[i] && prevKeyboardState[i])
-            return static_cast<SDL_Scancode>(i);
+        for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) if (!keyboardState[i] && prevKeyboardState[i]) return static_cast<SDL_Scancode>(i);
         return SDL_SCANCODE_UNKNOWN;
     }
 

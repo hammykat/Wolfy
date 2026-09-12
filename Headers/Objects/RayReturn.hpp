@@ -11,6 +11,11 @@
 #include "../Math/Vector/Vector2.hpp"
 
 // A ray is just a 2d line (vec2 start and end) so there is no reason to have a ray struct
+struct RayWall {
+    ID id;
+    uint32_t frontTexture, backTexture;
+};
+
 
 struct RayReturn {
     // A ray should return a vector of every single wall it hit, and a vector of the intersection point
@@ -18,7 +23,7 @@ struct RayReturn {
 
     uint16_t column; // Not sure if this is necessary. it is indication which column of the screen this ray return is responsible for
                      // It might be needed if we want to have reflections or portals that will make the rays move
-    std::vector<Wall> walls;
+    std::vector<RayWall> walls;
     std::vector<Vector2> points;
 };
 

@@ -16,14 +16,15 @@
 struct Wall {
     ID id;
     Vector2 start, end;
-    std::string textureFileName;
+    std::string frontTextureFileName;
+    std::string backTextureFileName;
 
     // Read only — do not change
     Vector2 dir, normal, vector;
     float length{};
 
-    Wall(const Vector2& start, const Vector2& end, const Vector4 color, std::string textureFileName = {})
-    : start(start), end(end), textureFileName(std::move(textureFileName)) {
+    Wall(const Vector2& start, const Vector2& end, const Vector4 color, std::string frontTextureFileName = {}, std::string backTextureFileName = {})
+    : start(start), end(end), frontTextureFileName(std::move(frontTextureFileName)), backTextureFileName(std::move(backTextureFileName)) {
 
         RefreshDerived();
     }
