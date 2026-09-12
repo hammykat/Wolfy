@@ -2,7 +2,8 @@
 // Created by berke on 9/12/2026.
 //
 
-#include "../../Headers/Engine/InputManager.hpp"
+#include "Headers/Engine/InputManager.hpp"
+#include "Headers/Renderer/Renderer.hpp"
 #include <algorithm>
 
 #if TILKY_USE_IMGUI
@@ -65,7 +66,6 @@ namespace InputManager {
         while (SDL_PollEvent(&event)) {
 #if TILKY_USE_IMGUI
             if (ImGui::GetCurrentContext() != nullptr) ImGui_ImplSDL3_ProcessEvent(&event);
-
 #endif
 
             switch (event.type) {
@@ -93,6 +93,10 @@ namespace InputManager {
                     break;
 
                 case SDL_EVENT_DROP_COMPLETE: externalDragActive = false; break;
+
+                case SDL_EVENT_WINDOW_RESIZED:
+                    Renderer::OnWindowResize();
+                    break;
                 default: break;
             }
         }
