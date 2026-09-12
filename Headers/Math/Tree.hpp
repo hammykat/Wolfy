@@ -3,11 +3,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "GameTypes.hpp"
+struct Vector2 {
+    int32_t x, y;
+};
 
 struct Vector2Hash
 {
-    std::size_t operator()(const Blokk::Vector2& Coord) const noexcept
+    std::size_t operator()(const Vector2& Coord) const noexcept
     {
         return
             (static_cast<uint64_t>(static_cast<uint32_t>(Coord.x)) << 32) |
@@ -23,13 +25,13 @@ public: // Allow full access to data
 
     std::vector<std::vector<Type>> Values;
 
-    std::unordered_map<Blokk::Vector2, uint32_t, Vector2Hash> GroupNames;
+    std::unordered_map<Vector2, uint32_t, Vector2Hash> GroupNames;
 
     std::vector<std::vector<uint32_t>> FreeIdxs;
     std::vector<uint32_t> FreeIdxSize;
 
     [[nodiscard]]
-    Type GetItemFromGroup(const Blokk::Vector2& GroupCoords, uint32_t Idx)
+    Type GetItemFromGroup(const Vector2& GroupCoords, uint32_t Idx)
     {
         return Values[GroupNames.at(GroupCoords)][Idx];
     }
@@ -41,7 +43,7 @@ public: // Allow full access to data
     }
 
     void AddItemToGroup(
-        const Blokk::Vector2& GroupCoords,
+        const Vector2& GroupCoords,
         Type Val)
     {
         uint32_t Idx = GroupNames.at(GroupCoords);
@@ -61,7 +63,7 @@ public: // Allow full access to data
     }
 
     void AddItemsToGroup(
-        const Blokk::Vector2& GroupCoords,
+        const Vector2& GroupCoords,
         const std::vector<Type>& Items)
     {
         uint32_t Idx = GroupNames.at(GroupCoords);
@@ -83,7 +85,7 @@ public: // Allow full access to data
         }
     }
 
-    void CreateNewGroup(const Blokk::Vector2& GroupCoords)
+    void CreateNewGroup(const Vector2& GroupCoords)
     {
         uint32_t Idx = static_cast<uint32_t>(Values.size());
 
@@ -95,7 +97,7 @@ public: // Allow full access to data
     }
 
     void RemoveItemFromGroup(
-        const Blokk::Vector2& GroupCoords,
+        const Vector2& GroupCoords,
         uint32_t Idx
     ) {
         uint32_t GroupIdx = GroupNames.at(GroupCoords);
@@ -112,14 +114,14 @@ public: // Allow full access to data
         ++FreeIdxSize[GroupIdx];
     }
 
-    Type& GetRefToGroup(const Blokk::Vector2& GroupCoords)
+    Type& GetRefToGroup(const Vector2& GroupCoords)
     {
         uint32_t GroupIdx = GroupNames.at(GroupCoords);
 
         return Values[GroupIdx];
     }
 
-    uint32_t GetIndexOfGroup(const Blokk::Vector2& GroupCoords)
+    uint32_t GetIndexOfGroup(const Vector2& GroupCoords)
     {
         return GroupNames.at(GroupCoords);
     }
