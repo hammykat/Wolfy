@@ -110,12 +110,11 @@ namespace ProjectManager {
         const fs::path resolvedEngineDir = engineDirectory.empty() ? GetEngineBasePath() : engineDirectory;
 
 #ifdef _WIN32
-        const fs::path engineExe = resolvedEngineDir / "Wolfy.exe";
+        const fs::path engineExe = resolvedEngineDir / "Wolfy_Engine.exe";
 
         std::wstring appPath = engineExe.wstring();
 
-        std::wstring commandLine =
-            L"\"" + appPath + L"\" --project \"" + projectFile.wstring() + L"\"";
+        std::wstring commandLine = L"\"" + appPath + L"\" --project \"" + projectFile.wstring() + L"\"";
 
         std::wstring workingDirectory = resolvedEngineDir.wstring();
 
@@ -133,7 +132,7 @@ namespace ProjectManager {
             nullptr,
             nullptr,
             FALSE,
-            CREATE_NO_WINDOW,
+            CREATE_NEW_CONSOLE,
             nullptr,
             workingDirectory.c_str(),
             &startupInfo,
@@ -157,8 +156,7 @@ namespace ProjectManager {
 #else
         const fs::path engineExe = resolvedEngineDir / "Wolfy_Engine";
 
-        const std::string command =
-            "\"" + engineExe.string() + "\" --project \"" + projectFile.string() + "\"";
+        const std::string command = "\"" + engineExe.string() + "\" --project \"" + projectFile.string() + "\"";
 
         spdlog::info("Launching engine with command: {}", command);
 

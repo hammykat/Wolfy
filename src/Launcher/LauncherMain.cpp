@@ -2,7 +2,7 @@
 // Created by berke on 5/3/2026.
 //
 
-//#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_main.h>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -39,6 +39,7 @@ void InitLog(const fs::path& projectsPath) {
         std::cerr << ex.what() << std::endl;
     }
 }
+
 bool CreateDirectories(const fs::path& projectsPath) {
     try {
         fs::create_directories(projectsPath);

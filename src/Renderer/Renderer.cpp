@@ -29,8 +29,14 @@ namespace {
     std::unordered_map<std::string, uint32_t> fileNameToId;
     std::unordered_map<uint32_t, SDL_Texture*> idToTexture;
 
-    void CreateTexturesLookupTable() {
+    bool CreateTexturesLookupTable() {
         const fs::path assetsPath = ProjectManager::GetAssetsPath();
+
+        if (assetsPath.empty() || !fs::is_directory(assetsPath)) {
+            spdlog::critical("Invalid project assets directory: '{}'", assetsPath.string());
+            return false;
+        }
+
         uint32_t nextTextureId = 0;
 
         // Loop through all files and subdirectories
@@ -52,8 +58,8 @@ namespace {
                     SDL_Texture* texture = IMG_LoadTexture(renderer, filePath.string().c_str());
 
                     if (texture == nullptr) {
-                        spdlog::error("Failed to load texture: {} SDL_Image Error: ", filePath.string(), SDL_GetError());
-                        continue;
+                        spdlog::critical("Failed to load texture: {} SDL_Image Error: ", filePath.string(), SDL_GetError());
+                        return false;
                     }
 
                     uint32_t currentId = nextTextureId++;
@@ -65,6 +71,8 @@ namespace {
                 }
             }
         }
+
+        return true;
     }
 
     void CleanupTextures() {
@@ -78,17 +86,20 @@ namespace Renderer {
     bool Initialize() {
         if (!SDL_Init(sdlFlags)) {
             spdlog::critical("Could not initialize SDL");
-            return true;
+            return false;
         }
 
         if (!SDL_CreateWindowAndRenderer("Wolfy Engine", START_SCREEN_WIDTH, START_SCREEN_HEIGHT, WINDOW_FLAGS, &window, &renderer)) {
             spdlog::critical("Could not create window or renderer");
-            return true;
+            return false;
         }
 
-        CreateTexturesLookupTable();
+        if (!CreateTexturesLookupTable()) {
+            spdlog::critical("Could not create texture lookup table");
+            return false;
+        }
 
-        return false;
+        return true;
     }
 
     void StartFrame() {
@@ -99,6 +110,7 @@ namespace Renderer {
     void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, Camera& cam) {
         // todo WOLFYTODO Raycast here
 
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderLine(renderer, 100, 200, 300, 400);
     }
 

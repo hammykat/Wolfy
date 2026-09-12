@@ -21,6 +21,7 @@
 #include "Headers/Renderer/Renderer.hpp"
 
 inline bool InitEngineLogger() {
+    SDL_Log("Engine Logging");
     const fs::path logPath = ProjectManager::GetEngineFolder() / "Logs"/ "engine_log.txt";
 
     try {
@@ -30,11 +31,7 @@ inline bool InitEngineLogger() {
 
         consoleSink->set_level(spdlog::level::trace);
 
-        const auto fileSink =
-            std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-                logPath.string(),
-                true
-            );
+        const auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logPath.string(),true);
 
         fileSink->set_level(spdlog::level::trace);
 
@@ -64,14 +61,18 @@ inline bool InitEngineLogger() {
 }
 
 namespace Engine {
-    inline void Initialize() {
+    inline bool Initialize() {
+        spdlog::info("Starting Engine Initilization");
         // Creates C:/Documents/Wolfy Engine if it is not already created (should work for Linux & Mac as well but not sure)
         ProjectManager::GetEngineFolder();
         InitEngineLogger();
 
 
-        Renderer::Initialize();
+        if (!Renderer::Initialize()) { spdlog::critical("Failed to initialize renderer"); return false;}
         InputManager::Initialize(Renderer::GetWindow());
+
+        spdlog::info("Engine initialized successfully");
+        return true;
     }
 
     inline void BeginFrame() {
@@ -79,15 +80,7 @@ namespace Engine {
         GameTime::Update();
     }
 
-    // inlining because this function will only be called from the main while loop
-    inline void Update() {
-        Level& level = LevelManager::CurrentLevel();
-
-        level.player.Update();
-        //todo WOLFYTODO everything non-rendering wise (racyasting should be done inside the renderer)
-
-        Renderer::Process(level.walls, level.entities, level.player.camera);
-    }
+    void Update();
 
     // Just a small helper that calls other functions
     inline void Process() {
