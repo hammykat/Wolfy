@@ -17,6 +17,7 @@ namespace Engine {
         std::vector<Wall> walls;
         std::vector<Entity> entities;
         Camera cam;
+        cam.rayCount = 960;
         Renderer::Process(walls, entities, cam);
     }
 }

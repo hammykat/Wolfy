@@ -14,6 +14,7 @@
 struct RayWall {
     ID id;
     uint32_t frontTexture, backTexture;
+    float height; // Vertical distance of the wall
 };
 
 
@@ -24,7 +25,6 @@ struct RayReturn {
     uint16_t column; // Not sure if this is necessary. it is indication which column of the screen this ray return is responsible for
                      // It might be needed if we want to have reflections or portals that will make the rays move
     std::vector<RayWall> walls;
-    std::vector<Vector2> points;
 };
 
 #endif //WOLFY_RAY_HPP

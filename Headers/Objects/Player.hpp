@@ -12,7 +12,8 @@
 struct Camera { // Putting this outside the Player struct for Renderer to be able to see
     float fov = 90.0f;
     float fovRadians = fov * Constants::DegToRad;
-    uint16_t rayCount = 1080; // Should be equal to screen width for maximum resolution
+    uint16_t rayCount = 960; // Should be equal to screen width for maximum resolution
+    float renderDistance = 256.0f;
     float wallHeight = 64.0f;
 };
 

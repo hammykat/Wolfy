@@ -6,12 +6,13 @@
 #include <SDL3_image/SDL_image.h>
 #include <spdlog/spdlog.h>
 #include <SDL3/SDL_render.h>
+#include <ranges>
 
 #include "Headers/Renderer/Renderer.hpp"
 
-#include <ranges>
-
 #include "Headers/Engine/ProjectManager.hpp"
+#include "Headers/Objects/RayReturn.hpp"
+#include "Headers/Math/Helpers.hpp"
 
 using TextureID = uint32_t;
 
@@ -20,14 +21,14 @@ namespace {
     SDL_Window* window;
     SDL_Renderer* renderer;
 
-    int screenWidth, screenHeight;
-
     constexpr SDL_InitFlags sdlFlags = SDL_INIT_VIDEO | SDL_INIT_AUDIO;
     constexpr int WINDOW_FLAGS = SDL_WINDOW_RESIZABLE /* | SDL_WINDOW_MAXIMIZED */;
 
     // Note: these values won't matter if SDL_WINDOW_MAXIMIZED is enabled.
     constexpr int START_SCREEN_WIDTH = 960;
     constexpr int START_SCREEN_HEIGHT = 640;
+
+    int screenWidth = START_SCREEN_WIDTH, screenHeight = START_SCREEN_HEIGHT;
 
     std::unordered_map<std::string, TextureID> fileNameToId;
     std::unordered_map<TextureID, SDL_Texture*> idToTexture;
@@ -96,8 +97,43 @@ namespace {
 
     // Same thing but with the ID
     // Faster because it is just passing an integer
-    // Requires to cache the IDs first
+    // Requires to cache the IDs first, useful for constant things like background
     SDL_Texture* GetTextureByID(const TextureID id) { return idToTexture[id]; }
+
+    // destHeight = total height in pixels that the column of the wall will take up
+    // destY = the starting vertical position on screen. Y = top of the screen
+    void RenderTextureColumnToScreen(SDL_Texture* const texture, const int column, float t, const float destHeight, const float destY) {
+        float texW, texH;
+        SDL_GetTextureSize(texture, &texW, &texH);
+
+        if (t < 0.0f) t = 0.0f;
+        if (t > 1.0f) t = 1.0f;
+
+        // Setup Source Rect
+        SDL_FRect srcRect;
+        srcRect.x = t * (texW - 1.0f);
+        srcRect.y = 0.0f;
+        srcRect.w = 1.0f;
+        srcRect.h = texH;
+
+        // Setup Destination Rect
+        SDL_FRect dstRect;
+        dstRect.x = static_cast<float>(column);
+
+        dstRect.y = destY;
+        dstRect.w = 1.0f;
+        dstRect.h = destHeight;
+
+        SDL_RenderTexture(renderer, texture, &srcRect, &dstRect);
+    }
+
+    // scale 1.0f = entire screen, .5f = half of the screen, starting from the middle of the screen
+    void RenderTextureWall(SDL_Texture* const texture, const int column, const float t, const float scale) {
+        const float scaledHeight = static_cast<float>(screenHeight) * scale;
+        const float anchor = (static_cast<float>(screenHeight) - scaledHeight) * 0.5f;
+
+        RenderTextureColumnToScreen(texture, column, t, scaledHeight, anchor);
+    }
 }
 
 namespace Renderer {
@@ -125,17 +161,11 @@ namespace Renderer {
         SDL_RenderClear(renderer);
     }
 
-    void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, Camera& cam) {
+    void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, const Camera& cam) {
         for (int i = 0; i < cam.rayCount; i++) {
             // todo WOLFYTODO Raycast and draw to screen here
+            RenderTextureWall(GetTextureByFileName("test"), i, MathHelpers::InverseLerp(0, cam.rayCount, i), .5f);
         }
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-        SDL_Texture* texture = GetTextureByFileName("test");
-
-        SDL_RenderTexture(renderer, texture, NULL, NULL);
-
     }
 
     void EndFrame() {

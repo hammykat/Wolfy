@@ -15,7 +15,7 @@ namespace Renderer {
     bool Initialize(); // Initialize is called one before the engine starts
 
     void StartFrame(); // Start is called at the beginning of each frame
-    void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, Camera& cam);
+    void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, const Camera& cam);
     void EndFrame(); // End is called at the end of a frame
 
     bool Destroy(); // Destor is called after the engine closes
