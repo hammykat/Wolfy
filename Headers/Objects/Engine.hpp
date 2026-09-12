@@ -11,6 +11,7 @@
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 
+#include "Headers/LevelManager.hpp"
 #include "Headers/Engine/GameTime.hpp"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -62,15 +63,10 @@ inline bool InitEngineLogger() {
     }
 }
 
-// placeholder values for the engine to compile. Delete them once the level system is in place
-inline std::vector<Wall> walls;
-inline std::vector<Entity> entities;
-inline Camera cam;
-
 namespace Engine {
     inline void Initialize() {
         // Creates C:/Documents/Wolfy Engine if it is not already created (should work for Linux & Mac as well but not sure)
-        ProjectManager::CreateEngineFolder();
+        ProjectManager::GetEngineFolder();
         InitEngineLogger();
 
         Renderer::Initialize();
@@ -82,10 +78,14 @@ namespace Engine {
         GameTime::Update();
     }
 
+    // inlining because this function will only be called from the main while loop
     inline void Update() {
-        //todo WOLFYTODO everything non-rendering wise
+        Level& level = LevelManager::CurrentLevel();
 
-        Renderer::Process(walls, entities, cam);
+        level.player.Update();
+        //todo WOLFYTODO everything non-rendering wise (racyasting should be done inside the renderer)
+
+        Renderer::Process(level.walls, level.entities, level.player.camera);
     }
 
     // Just a small helper that calls other functions

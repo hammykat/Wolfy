@@ -8,11 +8,16 @@
 #include <vector>
 #include "Wall.hpp"
 #include "Entities.hpp"
+#include "Player.hpp"
 
 // A level should be the single source of truth for everything related to storing information about the level
 struct Level {
+    std::string name;
+
     std::vector<Wall> walls;
     std::vector<Entity> entities;
+
+    Player player;
 };
 
 #endif //WOLFY_LEVEL_HPP
