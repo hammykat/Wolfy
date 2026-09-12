@@ -25,8 +25,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // ===========
+    // ENGINE CODE
+    // ===========
+
     if (!Engine::Initialize()) { spdlog::critical("Failed to initialize engine"); return 1; }
-    spdlog::info("Updating walls");
 
     while (Engine::Running()) Engine::Process();
 

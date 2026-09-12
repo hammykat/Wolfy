@@ -13,11 +13,14 @@
 
 #include "Headers/Engine/ProjectManager.hpp"
 
+using TextureID = uint32_t;
+
+// Initialization things
 namespace {
     SDL_Window* window;
     SDL_Renderer* renderer;
 
-    int windowWidth, windowHeight;
+    int screenWidth, screenHeight;
 
     constexpr SDL_InitFlags sdlFlags = SDL_INIT_VIDEO | SDL_INIT_AUDIO;
     constexpr int WINDOW_FLAGS = SDL_WINDOW_RESIZABLE /* | SDL_WINDOW_MAXIMIZED */;
@@ -26,8 +29,8 @@ namespace {
     constexpr int START_SCREEN_WIDTH = 960;
     constexpr int START_SCREEN_HEIGHT = 640;
 
-    std::unordered_map<std::string, uint32_t> fileNameToId;
-    std::unordered_map<uint32_t, SDL_Texture*> idToTexture;
+    std::unordered_map<std::string, TextureID> fileNameToId;
+    std::unordered_map<TextureID, SDL_Texture*> idToTexture;
 
     bool CreateTexturesLookupTable() {
         const fs::path assetsPath = ProjectManager::GetAssetsPath();
@@ -82,6 +85,21 @@ namespace {
     }
 }
 
+// Runtime functions
+namespace {
+    TextureID GetTextureIDByFileName(const std::string& name) { return fileNameToId[name]; }
+
+    // Returns the texture with the file name inside the current project's Assets directory (subdirectories included)
+    // Not the most optimal since it requires passing strings each frame
+    // Note: do not include the file extension
+    SDL_Texture* GetTextureByFileName(const std::string& fileName) { return idToTexture[fileNameToId[fileName]];}
+
+    // Same thing but with the ID
+    // Faster because it is just passing an integer
+    // Requires to cache the IDs first
+    SDL_Texture* GetTextureByID(const TextureID id) { return idToTexture[id]; }
+}
+
 namespace Renderer {
     bool Initialize() {
         if (!SDL_Init(sdlFlags)) {
@@ -108,10 +126,16 @@ namespace Renderer {
     }
 
     void Update(const std::vector<Wall>& walls, const std::vector<Entity>& entities, Camera& cam) {
-        // todo WOLFYTODO Raycast here
+        for (int i = 0; i < cam.rayCount; i++) {
+            // todo WOLFYTODO Raycast and draw to screen here
+        }
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderLine(renderer, 100, 200, 300, 400);
+
+        SDL_Texture* texture = GetTextureByFileName("test");
+
+        SDL_RenderTexture(renderer, texture, NULL, NULL);
+
     }
 
     void EndFrame() {
@@ -129,6 +153,6 @@ namespace Renderer {
     SDL_Window* GetWindow() { return window; }
 
     // Gets called by the InputManager whenever the window is resized
-    void OnWindowResize() { SDL_GetWindowSizeInPixels(window, &windowWidth, &windowHeight);}
+    void OnWindowResize() { SDL_GetWindowSizeInPixels(window, &screenWidth, &screenHeight);}
 }
 

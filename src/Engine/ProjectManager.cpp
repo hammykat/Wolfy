@@ -126,13 +126,19 @@ namespace ProjectManager {
         spdlog::info("Launching engine executable: {}", engineExe.string());
         spdlog::info("Opening project file: {}", projectFile.string());
 
+#ifndef NDEBUG
+        constexpr DWORD processFlags = CREATE_NEW_CONSOLE;
+#else
+        constexpr DWORD processFlags = CREATE_NO_WINDOW;
+#endif
+
         const BOOL success = CreateProcessW(
             appPath.c_str(),
             commandLine.data(),
             nullptr,
             nullptr,
             FALSE,
-            CREATE_NEW_CONSOLE,
+            processFlags,
             nullptr,
             workingDirectory.c_str(),
             &startupInfo,
